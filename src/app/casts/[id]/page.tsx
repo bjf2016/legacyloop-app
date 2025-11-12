@@ -9,6 +9,7 @@ import { getEntriesByCastId } from '@/lib/queries/entries';
 import EntryRow from '@/components/entries/EntryRow';
 import { importOrphansForCast } from '@/lib/tools/importOrphans';
 import { normalizePathsForCast } from '@/lib/tools/normalizePaths';
+import SummaryChip from "@/src/components/SummaryChip";
 
 export default function CastDetailPage() {
   const params = useParams<{ id: string }>();

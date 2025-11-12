@@ -4,6 +4,8 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import type { Entry } from '@/types/db';
 import { useSignedUrl } from '@/hooks/useSignedUrl';
 import { softDeleteEntry } from '@/lib/actions/entries';
+import SummaryChip from '@/components/SummaryChip';
+import RuleLinkPicker from '@/components/RuleLinkPicker';
 
 function fmtDate(d?: string | null) {
   if (!d) return '—';
@@ -70,41 +72,53 @@ export default function EntryRow({ entry }: { entry: Entry }) {
   }
 
   return (
-    <div className="rounded-2xl border border-zinc-800 p-4">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <div className="text-base font-semibold">
-            {entry.title || 'Untitled Entry'}
-          </div>
-          <div className="text-sm opacity-75">{subtitle}</div>
+  <div className="rounded-2xl border border-zinc-800 p-4">
+    {/* Top row: title + player + trash */}
+    <div className="flex items-start justify-between gap-4">
+      <div>
+        <div className="text-base font-semibold">
+          {entry.title || 'Untitled Entry'}
+        </div>
+        <div className="text-sm opacity-75">{subtitle}</div>
+      </div>
+
+      <div className="flex items-center gap-3 min-w-[320px]">
+        <div className="min-w-[240px]">
+          {loading ? (
+            <div className="h-10 rounded-xl bg-zinc-900/60 animate-pulse" />
+          ) : error || !url ? (
+            <div className="text-sm">
+              <span className="opacity-80">Audio unavailable.</span>{' '}
+              <button onClick={refreshNow} className="underline underline-offset-2">
+                Retry
+              </button>
+            </div>
+          ) : (
+            <audio ref={audioRef} controls className="w-full" onError={onAudioError} />
+          )}
         </div>
 
-        <div className="flex items-center gap-3 min-w-[320px]">
-          <div className="min-w-[240px]">
-            {loading ? (
-              <div className="h-10 rounded-xl bg-zinc-900/60 animate-pulse" />
-            ) : error || !url ? (
-              <div className="text-sm">
-                <span className="opacity-80">Audio unavailable.</span>{' '}
-                <button onClick={refreshNow} className="underline underline-offset-2">
-                  Retry
-                </button>
-              </div>
-            ) : (
-              <audio ref={audioRef} controls className="w-full" onError={onAudioError} />
-            )}
-          </div>
-
-          <button
-            onClick={onTrash}
-            disabled={busy}
-            className="rounded-xl border border-red-600/70 px-3 py-2 text-sm hover:bg-red-900/30 disabled:opacity-60"
-            title="Move to Trash"
-          >
-            {busy ? 'Moving…' : 'Move to Trash'}
-          </button>
-        </div>
+        <button
+          onClick={onTrash}
+          disabled={busy}
+          className="rounded-xl border border-red-600/70 px-3 py-2 text-sm hover:bg-red-900/30 disabled:opacity-60"
+          title="Move to Trash"
+        >
+          {busy ? 'Moving…' : 'Move to Trash'}
+        </button>
       </div>
     </div>
-  );
+
+    {/* Bottom row: AI Summary + Rule linking */}
+    <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-3">
+      <div className="border border-zinc-800 rounded-2xl p-3">
+        <SummaryChip entryId={entry.id} />
+      </div>
+      <div className="border border-zinc-800 rounded-2xl p-3">
+        <RuleLinkPicker entryId={entry.id} />
+      </div>
+    </div>
+  </div>
+);
+
 }
