@@ -6,6 +6,8 @@ import { useSignedUrl } from '@/hooks/useSignedUrl';
 import { softDeleteEntry } from '@/lib/actions/entries';
 import SummaryChip from '@/components/SummaryChip';
 import RuleLinkPicker from '@/components/RuleLinkPicker';
+import { setEntryDuration } from '@/lib/actions/entries';
+
 
 function fmtDate(d?: string | null) {
   if (!d) return '—';
@@ -42,6 +44,31 @@ export default function EntryRow({ entry }: { entry: Entry }) {
       return () => el.removeEventListener('canplay', onCanPlay);
     }
   }, [url]);
+
+  // -----------------------------
+  // Step 4 (mini): capture duration on first successful play
+  // -----------------------------
+  useEffect(() => {
+    if (!audioRef.current || entry.duration_ms != null) return;
+    const el = audioRef.current;
+
+    const onLoadedMeta = () => {
+      if (
+        entry.duration_ms == null &&
+        Number.isFinite(el.duration) &&
+        el.duration > 0
+      ) {
+        import('@/lib/actions/entries')
+          .then(({ setEntryDuration }) =>
+            setEntryDuration(entry.id, el.duration * 1000).catch(() => {})
+          )
+          .catch(() => {});
+      }
+    };
+
+    el.addEventListener('loadedmetadata', onLoadedMeta);
+    return () => el.removeEventListener('loadedmetadata', onLoadedMeta);
+  }, [entry.id, entry.duration_ms, url]);
 
   // refresh on audio error (e.g., expired signed URL)
   const onAudioError = () => {
