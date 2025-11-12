@@ -58,7 +58,7 @@ export default function EntryRow({ entry }: { entry: Entry }) {
         Number.isFinite(el.duration) &&
         el.duration > 0
       ) {
-        import('@/lib/actions/entries')
+        import('@/lib/actions/entriesServer')
           .then(({ setEntryDuration }) =>
             setEntryDuration(entry.id, el.duration * 1000).catch(() => {})
           )
