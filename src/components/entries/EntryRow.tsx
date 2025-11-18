@@ -22,6 +22,21 @@ function fmtDuration(ms?: number | null) {
   return `${m}:${s.toString().padStart(2, '0')}`;
 }
 
+const deriveEntryTitle = (entry: { title?: string | null; transcript?: string | null }) => {
+  // If a real title ever exists in future versions, use it
+  if (entry.title && entry.title.trim().length > 0) {
+    return entry.title.trim();
+  }
+
+  const text = (entry.transcript || '').trim();
+  if (!text) return 'Untitled Entry';
+
+  const words = text.split(/\s+/);
+  if (words.length <= 8) return text;
+  return words.slice(0, 8).join(' ') + '…';
+};
+
+
 export default function EntryRow({ entry }: { entry: Entry }) {
   const { url, loading, error, refreshNow } = useSignedUrl(entry.audio_path, 900);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -104,7 +119,7 @@ export default function EntryRow({ entry }: { entry: Entry }) {
     <div className="flex items-start justify-between gap-4">
       <div>
         <div className="text-base font-semibold">
-          {entry.title || 'Untitled Entry'}
+          {deriveEntryTitle(entry)}
         </div>
         <div className="text-sm opacity-75">{subtitle}</div>
       </div>

@@ -52,10 +52,19 @@ export default function CastsPage() {
     );
   }
 
-  return (
-    <main className="mx-auto max-w-3xl p-6">
-      <div className="mb-5 flex items-center justify-between">
-        <h1 className="text-2xl font-bold">My Casts</h1>
+return (
+  <main className="mx-auto max-w-3xl p-6">
+    <div className="mb-5 flex items-center justify-between">
+      <h1 className="text-2xl font-bold">My Casts</h1>
+
+      <div className="flex items-center gap-3">
+        <Link
+          href="/trash"
+          className="rounded-xl border border-zinc-700 px-3 py-2 text-sm hover:bg-zinc-900"
+        >
+          View Trash
+        </Link>
+
         <Link
           href="/casts/new"
           className="rounded-xl border border-zinc-700 px-3 py-2 text-sm hover:bg-zinc-900"
@@ -63,17 +72,21 @@ export default function CastsPage() {
           New Cast
         </Link>
       </div>
+    </div>
 
-      {(!casts || casts.length === 0) ? (
-        <div className="rounded-2xl border border-dashed border-zinc-700 p-8 text-center">
-          <p className="mb-2 text-lg font-medium">No casts yet</p>
-          <p className="opacity-80">Click <span className="underline">New Cast</span> to create your first one.</p>
-        </div>
-      ) : (
-        <div className="grid gap-3">
-          {casts.map(c => <CastCard key={c.id} cast={c} />)}
-        </div>
-      )}
-    </main>
-  );
+    {(!casts || casts.length === 0) ? (
+      <div className="rounded-2xl border border-dashed border-zinc-700 p-8 text-center">
+        <p className="mb-2 text-lg font-medium">No casts yet</p>
+        <p className="opacity-80">
+          Click <span className="underline">New Cast</span> to create your first one.
+        </p>
+      </div>
+    ) : (
+      <div className="grid gap-3">
+        {casts.map(c => <CastCard key={c.id} cast={c} />)}
+      </div>
+    )}
+  </main>
+);
 }
+
