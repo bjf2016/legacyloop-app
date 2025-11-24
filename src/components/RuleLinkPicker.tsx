@@ -1,11 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { createClient } from "@/lib/supabase/client";
 
 type Rule = { id: string; title: string; description?: string | null };
 type Props = { entryId: string };
 
 export default function RuleLinkPicker({ entryId }: Props) {
+  const supabase = createClient();
   const [rules, setRules] = useState<Rule[]>([]);
   const [selected, setSelected] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
@@ -14,17 +16,40 @@ export default function RuleLinkPicker({ entryId }: Props) {
 
   useEffect(() => {
     let alive = true;
-    fetch("/api/rules")
-      .then((r) => r.json())
-      .then((d) => {
+
+    const loadRules = async () => {
+      setErr("");
+      try {
+        const { data, error } = await supabase
+          .from("rules")
+          .select("id, title, description")
+          .order("title");
+
         if (!alive) return;
-        setRules(Array.isArray(d) ? d : []);
-      })
-      .catch((e) => setErr(e?.message || "Failed loading rules"));
+
+        if (error) {
+          console.error("Failed loading rules:", error);
+          setErr(error.message);
+          setRules([]);
+          return;
+        }
+
+        setRules(data ?? []);
+      } catch (e: any) {
+        console.error("Failed loading rules:", e);
+        if (!alive) return;
+        setErr(e?.message || "Failed loading rules");
+        setRules([]);
+      }
+    };
+
+    loadRules();
+
     return () => {
       alive = false;
     };
-  }, []);
+  }, [supabase]);
+
 
   const toggle = (id: string) => {
     setSelected((prev) =>
