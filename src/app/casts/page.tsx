@@ -53,26 +53,36 @@ export default function CastsPage() {
   }
 
 return (
-  <main className="mx-auto max-w-3xl p-6">
-    <div className="mb-5 flex items-center justify-between">
-      <h1 className="text-2xl font-bold">My Casts</h1>
+    <main className="mx-auto max-w-3xl p-6">
+      <div className="mb-5 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <h1 className="text-2xl font-bold">My Casts</h1>
+          <Link
+            href="/today"
+            className="rounded-xl border border-zinc-700 px-3 py-1 text-xs hover:bg-zinc-900"
+          >
+            ← Today
+          </Link>
+        </div>
 
-      <div className="flex items-center gap-3">
-        <Link
-          href="/trash"
-          className="rounded-xl border border-zinc-700 px-3 py-2 text-sm hover:bg-zinc-900"
-        >
-          View Trash
-        </Link>
+        <div className="flex items-center gap-3">
+          <Link
+            href="/trash"
+            className="rounded-xl border border-zinc-700 px-3 py-2 text-sm hover:bg-zinc-900"
+          >
+            View Trash
+          </Link>
 
-        <Link
-          href="/casts/new"
-          className="rounded-xl border border-zinc-700 px-3 py-2 text-sm hover:bg-zinc-900"
-        >
-          New Cast
-        </Link>
+          <Link
+            href="/casts/new"
+            className="rounded-xl border border-zinc-700 px-3 py-2 text-sm hover:bg-zinc-900"
+          >
+            New Cast
+          </Link>
+        </div>
       </div>
-    </div>
+
+
 
     {(!casts || casts.length === 0) ? (
       <div className="rounded-2xl border border-dashed border-zinc-700 p-8 text-center">

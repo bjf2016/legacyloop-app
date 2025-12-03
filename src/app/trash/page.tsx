@@ -1,10 +1,10 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { restoreEntry } from '@/lib/actions/entries';
-import Link from 'next/link';
-
 
 type TrashEntry = {
   id: string;
@@ -12,6 +12,8 @@ type TrashEntry = {
   duration_ms: number | null;
   audio_path: string | null;
 };
+
+type AuthState = 'checking' | 'authed' | 'anon';
 
 function fmtDate(d?: string | null) {
   if (!d) return '—';
@@ -35,23 +37,25 @@ function shortPath(p?: string | null) {
   return `…/${before}/${last}`;
 }
 
-
 export default function TrashPage() {
+  const router = useRouter();
   const supabase = createClient();
+
+  const [authState, setAuthState] = useState<AuthState>('checking');
   const [entries, setEntries] = useState<TrashEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [restoreMessage, setRestoreMessage] = useState<string | null>(null);
 
-
-  async function loadTrash() {
+  async function loadTrash(userId: string) {
     setLoading(true);
     setError(null);
     try {
       const { data, error } = await supabase
         .from('entries')
-        .select('id, created_at, duration_ms, audio_path, deleted_at')
+        .select('id, created_at, duration_ms, audio_path, deleted_at, user_id')
+        .eq('user_id', userId)
         .not('deleted_at', 'is', null)
         .order('created_at', { ascending: false });
 
@@ -66,29 +70,53 @@ export default function TrashPage() {
   }
 
   useEffect(() => {
-    loadTrash();
+    (async () => {
+      const { data, error } = await supabase.auth.getUser();
+      if (error || !data.user) {
+        setAuthState('anon');
+        setLoading(false);
+        router.replace('/login');
+        return;
+      }
+
+      setAuthState('authed');
+      await loadTrash(data.user.id);
+    })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-    async function handleRestore(id: string) {
-      if (!confirm('Restore this entry from Trash?')) return;
-      try {
-        setBusyId(id);
-        await restoreEntry(id);
-        await loadTrash();
-        setRestoreMessage("Restored ✓");
-
-        setTimeout(() => {
-          setRestoreMessage(null);
-        }, 2000);
-
-      } catch (e: any) {
-        alert(e?.message ?? 'Failed to restore entry');
-      } finally {
-        setBusyId(null);
+  async function handleRestore(id: string) {
+    if (!confirm('Restore this entry from Trash?')) return;
+    try {
+      setBusyId(id);
+      await restoreEntry(id);
+      const { data } = await supabase.auth.getUser();
+      if (data?.user) {
+        await loadTrash(data.user.id);
       }
+      setRestoreMessage('Restored ✓');
+      setTimeout(() => {
+        setRestoreMessage(null);
+      }, 2000);
+    } catch (e: any) {
+      alert(e?.message ?? 'Failed to restore entry');
+    } finally {
+      setBusyId(null);
     }
+  }
 
+  if (authState === 'checking') {
+    return (
+      <main className="flex min-h-screen items-center justify-center">
+        <p className="text-sm text-zinc-500">Checking your session…</p>
+      </main>
+    );
+  }
+
+  if (authState === 'anon') {
+    // We already redirected, just a safety fallback
+    return null;
+  }
 
   return (
     <main className="max-w-3xl mx-auto p-4 space-y-4">
@@ -104,14 +132,18 @@ export default function TrashPage() {
         </div>
 
         <button
-          onClick={loadTrash}
+          onClick={async () => {
+            const { data } = await supabase.auth.getUser();
+            if (data?.user) {
+              await loadTrash(data.user.id);
+            }
+          }}
           className="rounded-xl border border-zinc-700 px-3 py-1 text-sm hover:bg-zinc-900/60"
           disabled={loading}
         >
           {loading ? 'Refreshing…' : 'Refresh'}
         </button>
       </div>
-
 
       {restoreMessage && (
         <div className="rounded-xl border border-emerald-600/70 bg-emerald-900/20 px-3 py-2 text-sm text-emerald-300">
@@ -147,7 +179,6 @@ export default function TrashPage() {
                 <div className="opacity-50 text-xs break-all mt-1">
                   {shortPath(entry.audio_path)}
                 </div>
-
               </div>
               <button
                 onClick={() => handleRestore(entry.id)}

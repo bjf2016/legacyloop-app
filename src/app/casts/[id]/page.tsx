@@ -9,7 +9,8 @@ import { getEntriesByCastId } from '@/lib/queries/entries';
 import EntryRow from '@/components/entries/EntryRow';
 import { importOrphansForCast } from '@/lib/tools/importOrphans';
 import { normalizePathsForCast } from '@/lib/tools/normalizePaths';
-import SummaryChip from "@/src/components/SummaryChip";
+import SummaryChip from "@/components/SummaryChip";
+
 
 export default function CastDetailPage() {
   const params = useParams<{ id: string }>();
@@ -103,15 +104,33 @@ export default function CastDetailPage() {
       <div className="mb-5 flex items-center justify-between gap-3">
         <div className="text-2xl font-bold">{castTitle}</div>
         <div className="flex items-center gap-2">
-          <button onClick={onNormalize} className="rounded-xl border border-zinc-700 px-3 py-2 text-sm hover:bg-zinc-900">
+          <Link
+            href="/today"
+            className="rounded-xl border border-zinc-700 px-3 py-2 text-sm hover:bg-zinc-900"
+          >
+            Today
+          </Link>
+          <Link
+            href="/casts"
+            className="rounded-xl border border-zinc-700 px-3 py-2 text-sm hover:bg-zinc-900"
+          >
+            All Casts
+          </Link>
+          <button
+            onClick={onNormalize}
+            className="rounded-xl border border-zinc-700 px-3 py-2 text-sm hover:bg-zinc-900"
+          >
             Normalize Paths
           </button>
-          <button onClick={onImport} className="rounded-xl border border-zinc-700 px-3 py-2 text-sm hover:bg-zinc-900">
+          <button
+            onClick={onImport}
+            className="rounded-xl border border-zinc-700 px-3 py-2 text-sm hover:bg-zinc-900"
+          >
             Quick Import Orphans
           </button>
-          <Link href="/casts" className="rounded-xl border border-zinc-700 px-3 py-2 text-sm hover:bg-zinc-900">Back</Link>
         </div>
       </div>
+
 
       {!entries || entries.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-zinc-700 p-8 text-center">
